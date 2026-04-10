@@ -1,4 +1,6 @@
 const url = require('url');
+const express = require('express');
+const router = express.Router();
 const {
     getMovies,
     getMovieById,
@@ -6,7 +8,8 @@ const {
     updateMovie,
     deleteMovie,
 } = require('../controllers/moviesController');
-
+// GET /movies
+router.get('/', getMovies);
 const moviesRoute = (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
@@ -18,10 +21,7 @@ const moviesRoute = (req, res) => {
         // GET /movies/:id
         case method === 'GET' && id !== null:
             return getMovieById(req, res, id);
-            // GET /movies
-        case method === 'GET' && path === '/movies':
-            return getMovies(req, res);
-            //POST /movies
+            // POST /movies
         case method === 'POST' && path === '/movies':
             return createMovie(req, res);
             // PATCH /movies/:id
@@ -37,4 +37,4 @@ const moviesRoute = (req, res) => {
     }
 };
 
-module.exports = moviesRoute;
+module.exports = router;
