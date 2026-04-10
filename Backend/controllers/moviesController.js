@@ -28,7 +28,7 @@ const getMovieById = async(req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
+// post /movies
 const createMovie = async(req, res) => {
     try {
         const data = req.body;
@@ -111,30 +111,27 @@ const updateMovie = async(req, res) => {
     }
 };
 // DELETE /movies/:id
-const deleteMovie = async(req, res, id) => {
+const deleteMovie = async(req, res) => {
     try {
+        const id = parseInt(req.params.id);
+
         const movies = await readMovies();
 
         const index = movies.findIndex(m => Number(m.id) === id);
 
         if (index === -1) {
-            res.statusCode = 404;
-            return res.end(JSON.stringify({ error: 'Movie not found' }));
+            return res.status(404).json({ error: 'Movie not found' });
         }
 
         const deleted = movies.splice(index, 1);
 
         await writeMovies(movies);
 
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(deleted[0]));
-
+        res.json(deleted[0]);
     } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Server error' }));
+        res.status(500).json({ error: 'Server error' });
     }
 };
-
 module.exports = {
     getMovies,
     getMovieById,
