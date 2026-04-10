@@ -1,0 +1,24 @@
+{
+    "name": "movie-app-backend",
+    "version": "1.0.0",
+    "description": "Backend for movie browsing app",
+    "homepage": "https://github.com/MahaHumaid/venus_movies_app_with_react_and_express#readme",
+    "bugs": {
+        "url": "https://github.com/MahaHumaid/venus_movies_app_with_react_and_express/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MahaHumaid/venus_movies_app_with_react_and_express.git"
+    },
+    "license": "ISC",
+    "author": "Saleem Qandeel",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "start": "nodemon index.js"
+    },
+    "dependencies": {
+        "express": "^5.2.1",
+        "nodemon": "^3.1.14"
+    }
+}
