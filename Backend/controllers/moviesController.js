@@ -4,11 +4,9 @@ const url = require('url');
 const getMovies = async(req, res) => {
     try {
         const movies = await readMovies();
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(movies));
+        res.json(movies);
     } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Server error' }));
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
