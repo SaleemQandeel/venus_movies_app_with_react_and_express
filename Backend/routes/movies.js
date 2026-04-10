@@ -10,6 +10,7 @@ const {
 } = require('../controllers/moviesController');
 // GET /movies
 router.get('/', getMovies);
+router.get('/:id', getMovieById);
 const moviesRoute = (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
@@ -18,10 +19,7 @@ const moviesRoute = (req, res) => {
     const idMatch = path.match(/^\/movies\/(\d+)/);
     const id = idMatch ? parseInt(idMatch[1]) : null;
     switch (true) {
-        // GET /movies/:id
-        case method === 'GET' && id !== null:
-            return getMovieById(req, res, id);
-            // POST /movies
+        // POST /movies
         case method === 'POST' && path === '/movies':
             return createMovie(req, res);
             // PATCH /movies/:id

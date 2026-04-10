@@ -10,25 +10,24 @@ const getMovies = async(req, res) => {
     }
 };
 
+
 // GET /movies/:id
-const getMovieById = async(req, res, id) => {
+const getMovieById = async(req, res) => {
     try {
+        const id = parseInt(req.params.id);
         const movies = await readMovies();
+
         const movie = movies.find(m => Number(m.id) === id);
+
         if (!movie) {
-            res.statusCode = 404;
-            return res.end(JSON.stringify({ error: 'Movie not found' }));
+            return res.status(404).json({ error: 'Movie not found' });
         }
 
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(movie));
-
+        res.json(movie);
     } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Server error' }));
+        res.status(500).json({ error: 'Server error' });
     }
 };
-
 
 // POST /movies
 const createMovie = async(req, res) => {
