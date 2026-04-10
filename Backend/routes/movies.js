@@ -10,28 +10,15 @@ const {
 } = require('../controllers/moviesController');
 // GET /movies
 router.get('/', getMovies);
+// GET /movies/:id
 router.get('/:id', getMovieById);
 // POST /movies
 router.post('/', createMovie);
-const moviesRoute = (req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-    const path = parsedUrl.pathname;
-    const query = parsedUrl.query;
-    const method = req.method;
-    const idMatch = path.match(/^\/movies\/(\d+)/);
-    const id = idMatch ? parseInt(idMatch[1]) : null;
-    switch (true) {
-        // PATCH /movies/:id
-        case method === 'PATCH' && id !== null:
-            return updateMovie(req, res, id);
-            // DELETE /movies/:id
-        case method === 'DELETE' && id !== null:
-            return deleteMovie(req, res, id);
-        default:
-            res.statusCode = 404;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ error: 'Route not found' }));
-    }
-};
+// PATCH /movies/:id
+router.patch('/:id', updateMovie);
+// DELETE /movies/:id
+router.delete('/:id', deleteMovie);
 
+
+module.exports = router;
 module.exports = router;
