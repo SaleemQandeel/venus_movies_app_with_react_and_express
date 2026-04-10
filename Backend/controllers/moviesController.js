@@ -69,44 +69,45 @@ const createMovie = async(req, res) => {
     }
 };
 // PATCH /movies/:id
-const updateMovie = async(req, res, id) => {
+const updateMovie = async(req, res) => {
     try {
-        let body = '';
+        const id = parseInt(req.params.id);
+        const data = req.body;
 
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
+        const movies = await readMovies();
 
-        req.on('end', async() => {
-            const data = JSON.parse(body);
-            const movies = await readMovies();
+        const index = movies.findIndex(m => Number(m.id) === id);
 
-            const index = movies.findIndex(m => Number(m.id) === id);
+        if (index === -1) {
+            return res.status(404).json({ error: 'Movie not found' });
+        }
 
-            if (index === -1) {
-                res.statusCode = 404;
-                return res.end(JSON.stringify({ error: 'Movie not found' }));
-            }
+        // Validation
+        if (data.title !== undefined && !data.title) {
+            return res.status(400).json({ error: 'Title must not be empty' });
+        }
+        if (data.description !== undefined && !data.description) {
+            return res.status(400).json({ error: 'Description must not be empty' });
+        }
+        if (data.year !== undefined && typeof data.year !== 'number') {
+            return res.status(400).json({ error: 'Year must be a number' });
+        }
 
-            const movie = movies[index];
+        const movie = movies[index];
 
-            // update fields
-            movie.title = data.title || movie.title;
-            movie.year = data.year || movie.year;
-            movie.rating = data.rating || movie.rating;
-            movie.description = data.description || movie.description;
+        // Update only sent fields
+        if (data.title !== undefined) movie.title = data.title;
+        if (data.year !== undefined) movie.year = data.year;
+        if (data.rating !== undefined) movie.rating = data.rating;
+        if (data.description !== undefined) movie.description = data.description;
 
-            movies[index] = movie;
+        movies[index] = movie;
 
-            await writeMovies(movies);
+        await writeMovies(movies);
 
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(movie));
-        });
-
+        res.json(movie);
     } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Server error' }));
+        res.status(500).json({ error: 'Server error' });
     }
 };
 // DELETE /movies/:id
