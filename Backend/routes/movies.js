@@ -11,6 +11,8 @@ const {
 // GET /movies
 router.get('/', getMovies);
 router.get('/:id', getMovieById);
+// POST /movies
+router.post('/', createMovie);
 const moviesRoute = (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
@@ -19,10 +21,7 @@ const moviesRoute = (req, res) => {
     const idMatch = path.match(/^\/movies\/(\d+)/);
     const id = idMatch ? parseInt(idMatch[1]) : null;
     switch (true) {
-        // POST /movies
-        case method === 'POST' && path === '/movies':
-            return createMovie(req, res);
-            // PATCH /movies/:id
+        // PATCH /movies/:id
         case method === 'PATCH' && id !== null:
             return updateMovie(req, res, id);
             // DELETE /movies/:id

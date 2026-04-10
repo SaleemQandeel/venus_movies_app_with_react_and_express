@@ -29,50 +29,43 @@ const getMovieById = async(req, res) => {
     }
 };
 
-// POST /movies
 const createMovie = async(req, res) => {
     try {
-        let body = '';
+        const data = req.body;
 
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
+        // Validation
+        if (!data.title) {
+            return res.status(400).json({ error: 'Title is required' });
+        } else if (!data.description) {
+            return res.status(400).json({ error: 'Description is required' });
+        } else if (!data.year) {
+            return res.status(400).json({ error: 'Year is required' });
+        } else if (typeof data.year !== 'number') {
+            return res.status(400).json({ error: 'Year must be a number' });
+        }
 
-        req.on('end', async() => {
-            const data = JSON.parse(body);
+        const movies = await readMovies();
 
-            // Validation
-            if (!data.title) {
-                res.statusCode = 400;
-                return res.end(JSON.stringify({ error: 'Title is required' }));
-            }
+        // Check if movie exists
+        const exists = movies.find(m => m.title === data.title);
+        if (exists) {
+            return res.status(409).json({ error: 'Movie already exists' });
+        }
 
-            if (data.year && typeof data.year !== 'number') {
-                res.statusCode = 400;
-                return res.end(JSON.stringify({ error: 'Year must be a number' }));
-            }
+        const newMovie = {
+            id: Date.now(),
+            title: data.title,
+            year: data.year,
+            rating: data.rating || 0,
+            description: data.description
+        };
 
-            const movies = await readMovies();
+        movies.push(newMovie);
+        await writeMovies(movies);
 
-            const newMovie = {
-                id: Date.now(),
-                title: data.title,
-                year: data.year || null,
-                rating: data.rating || 0,
-                description: data.description || ''
-            };
-
-            movies.push(newMovie);
-            await writeMovies(movies);
-
-            res.statusCode = 201;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(newMovie));
-        });
-
+        res.status(201).json(newMovie);
     } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: 'Server error' }));
+        res.status(500).json({ error: 'Server error' });
     }
 };
 // PATCH /movies/:id
