@@ -8,7 +8,7 @@ const {
     updateMovie,
     deleteMovie,
 } = require('../controllers/moviesController');
-// GET /movies
+// GET /movies or  GET /movies?search=keyword
 router.get('/', getMovies);
 // GET /movies/:id
 router.get('/:id', getMovieById);
@@ -18,7 +18,4 @@ router.post('/', createMovie);
 router.patch('/:id', updateMovie);
 // DELETE /movies/:id
 router.delete('/:id', deleteMovie);
-
-
-module.exports = router;
-module.exports = router;
+module.exports = router
