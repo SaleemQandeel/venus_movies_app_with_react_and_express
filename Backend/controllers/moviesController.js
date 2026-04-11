@@ -1,17 +1,29 @@
 const { readMovies, writeMovies } = require('../utils/fileHandler');
 const url = require('url');
-// GET /movies or GET /movies?search=keyword
+// GET /movies or GET /movies?search=keyword or GET /movies?limit=number
 const getMovies = async(req, res) => {
     try {
         let movies = await readMovies();
 
-        const { search } = req.query;
+        const { search, limit } = req.query;
 
         //  #9 issue Search 
         if (search) {
             movies = movies.filter(movie =>
                 movie.title.toLowerCase().includes(search.toLowerCase())
             );
+        }
+        //  #10 issue Limit
+        if (limit) {
+            const limitNumber = parseInt(limit);
+            // Validation
+            if (isNaN(limitNumber) || limitNumber <= 0) {
+                return res.status(400).json({
+                    error: "Limit must be a positive number"
+                });
+            }
+
+            movies = movies.slice(0, limitNumber);
         }
         if (movies.length === 0) {
             return res.status(200).json({

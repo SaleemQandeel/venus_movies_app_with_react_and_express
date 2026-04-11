@@ -8,7 +8,7 @@ const {
     updateMovie,
     deleteMovie,
 } = require('../controllers/moviesController');
-// GET /movies or  GET /movies?search=keyword
+// GET /movies or  GET /movies?search=keyword or GET /movies?limit=number
 router.get('/', getMovies);
 // GET /movies/:id
 router.get('/:id', getMovieById);
