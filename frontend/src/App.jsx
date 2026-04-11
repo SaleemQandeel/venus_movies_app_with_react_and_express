@@ -1,7 +1,5 @@
-import HomePage from "./pages/HomePage";
-
 function App() {
-  return <HomePage />;
+  return <h1>Movie Browser</h1>;
 }
 
 export default App;
