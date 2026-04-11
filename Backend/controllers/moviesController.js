@@ -1,16 +1,33 @@
 const { readMovies, writeMovies } = require('../utils/fileHandler');
 const url = require('url');
-// GET /movies
+// GET /movies or GET /movies?search=keyword
 const getMovies = async(req, res) => {
     try {
-        const movies = await readMovies();
-        res.json(movies);
+        let movies = await readMovies();
+
+        const { search } = req.query;
+
+        //  #9 issue Search 
+        if (search) {
+            movies = movies.filter(movie =>
+                movie.title.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+        if (movies.length === 0) {
+            return res.status(200).json({
+                message: "No movies found",
+                data: []
+            });
+        }
+        res.json({
+            count: movies.length,
+            data: movies
+        });
+
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 };
-
-
 // GET /movies/:id
 const getMovieById = async(req, res) => {
     try {
@@ -132,6 +149,7 @@ const deleteMovie = async(req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 module.exports = {
     getMovies,
     getMovieById,
