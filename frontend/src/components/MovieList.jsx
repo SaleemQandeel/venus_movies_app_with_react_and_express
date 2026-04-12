@@ -1,6 +1,6 @@
 import MovieCard from "./MovieCard"
 
-function MovieList({ movies, selectedMovie, onSelectMovie }) {
+function MovieList({ movies, selectedMovie, onSelectMovie, onHoverMovie }) {
     return (
         <section className="carousel-wrapper">
             <div className="movie-list">
@@ -10,6 +10,7 @@ function MovieList({ movies, selectedMovie, onSelectMovie }) {
                         movie={movie}
                         isSelected={movie.id === selectedMovie.id}
                         onSelect={onSelectMovie}
+                        onHover={onHoverMovie}
                     />
                 ))}
             </div>
