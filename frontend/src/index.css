@@ -47,6 +47,7 @@ body {
   background-repeat: no-repeat;
   pointer-events: none;
   z-index: 0;
+  transition: background-image 0.4s ease;
 }
 
 .background::after {
@@ -83,7 +84,6 @@ body {
   padding-bottom: 8px;
 }
 
-/* ─── TOP BADGE ──────────────────────────── */
 .top-badge {
   display: inline-flex;
   align-items: center;
@@ -140,7 +140,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 9px;
   margin-bottom: 20px;
 }
 
@@ -157,7 +157,7 @@ body {
 
 .meta-rating {
   color: rgba(255, 255, 255, 0.90);
-  font-weight: normal;
+  font-weight: 400;
   font-size: 1rem;
 }
 
@@ -225,8 +225,10 @@ body {
 }
 
 .movie-card:hover {
-  opacity: 0.90;
-  transform: translateY(-4px);
+  transform: scale(1.08) translateY(-6px);
+  opacity: 1;
+  z-index: 2;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65);
 }
 
 .movie-card.active {

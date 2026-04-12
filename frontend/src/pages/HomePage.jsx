@@ -5,12 +5,15 @@ import MovieList from "../components/MovieList"
 
 function HomePage() {
     const [selectedMovie, setSelectedMovie] = useState(movies[0])
+    const [hoveredMovie, setHoveredMovie] = useState(null)
+
+    const displayedMovie = hoveredMovie || selectedMovie
 
     return (
         <main className="page">
             <div
                 className="background"
-                style={{ backgroundImage: `url(${selectedMovie.poster})` }}
+                style={{ backgroundImage: `url(${displayedMovie.poster})` }}
             />
             <div className="background-overlay" />
 
@@ -22,13 +25,14 @@ function HomePage() {
             </div>
 
             <div className="middle-content">
-                <SelectedMovieDetails movie={selectedMovie} />
+                <SelectedMovieDetails movie={displayedMovie} />
             </div>
 
             <MovieList
                 movies={movies}
                 selectedMovie={selectedMovie}
                 onSelectMovie={setSelectedMovie}
+                onHoverMovie={setHoveredMovie}
             />
         </main>
     )
