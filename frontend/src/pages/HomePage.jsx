@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { movies } from "../data/movies"
 import SelectedMovieDetails from "../components/SelectedMovieDetails"
 import MovieList from "../components/MovieList"
@@ -6,8 +6,17 @@ import MovieList from "../components/MovieList"
 function HomePage() {
     const [selectedMovie, setSelectedMovie] = useState(movies[0])
     const [hoveredMovie, setHoveredMovie] = useState(null)
+    const listRef = useRef(null)
 
     const displayedMovie = hoveredMovie || selectedMovie
+
+    function scrollLeft() {
+        listRef.current.scrollBy({ left: -400, behavior: "smooth" })
+    }
+
+    function scrollRight() {
+        listRef.current.scrollBy({ left: 400, behavior: "smooth" })
+    }
 
     return (
         <main className="page">
@@ -33,6 +42,9 @@ function HomePage() {
                 selectedMovie={selectedMovie}
                 onSelectMovie={setSelectedMovie}
                 onHoverMovie={setHoveredMovie}
+                listRef={listRef}
+                onScrollLeft={scrollLeft}
+                onScrollRight={scrollRight}
             />
         </main>
     )
