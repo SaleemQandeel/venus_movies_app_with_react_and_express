@@ -1,9 +1,9 @@
 :root {
   --bg-color: #05070d;
-  --text-color: #ffffff;
-  --card-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  --yellow: #f5c518;
+  --radius: 16px;
+  --card-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   --transition: 0.25s ease;
-  --radius: 18px;
 }
 
 * {
@@ -19,8 +19,8 @@ html {
 body {
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
-  background: radial-gradient(circle at top, #111827 0%, #05070d 55%, #020307 100%);
-  color: var(--text-color);
+  background: var(--bg-color);
+  color: #fff;
   overflow-x: hidden;
 }
 
@@ -28,19 +28,161 @@ body {
   min-height: 100vh;
 }
 
-.home-page {
+/* ─── PAGE ───────────────────────────────── */
+.page {
+  position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: flex-end;
-  padding: 0 32px 28px;
+  flex-direction: column;
+  padding: 28px 52px 40px;
+  overflow: hidden;
 }
 
-.movie-strip-wrapper {
-  width: 100%;
+/* ─── BACKGROUND ─────────────────────────── */
+.background {
+  position: fixed;
+  inset: 0;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
 }
 
+.background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg,
+      rgba(5, 7, 13, 0.97) 0%,
+      rgba(5, 7, 13, 0.82) 28%,
+      rgba(5, 7, 13, 0.28) 60%,
+      rgba(5, 7, 13, 0.10) 100%),
+    linear-gradient(180deg,
+      rgba(5, 7, 13, 0.10) 0%,
+      rgba(5, 7, 13, 0.20) 50%,
+      rgba(5, 7, 13, 0.94) 100%);
+}
+
+.background-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 72% 48%,
+      rgba(255, 255, 255, 0.04),
+      transparent 40%);
+}
+
+/* ─── TOP SECTION ────────────────────────── */
+.top-section {
+  position: relative;
+  z-index: 1;
+  padding-top: 16px;
+  padding-bottom: 8px;
+}
+
+/* ─── TOP BADGE ──────────────────────────── */
+.top-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-new {
+  background: var(--yellow);
+  color: #111;
+  font-size: 0.92rem;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.badge-text {
+  color: var(--yellow);
+  font-size: 0.98rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1;
+}
+
+/* ─── MIDDLE CONTENT ─────────────────────── */
+.middle-content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* ─── HERO CONTENT ───────────────────────── */
+.hero-content {
+  width: min(100%, 500px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TITLE ──────────────────────────────── */
+.movie-title {
+  font-size: clamp(3.2rem, 5.8vw, 5rem);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  color: #fff;
+  margin-bottom: 18px;
+}
+
+/* ─── META ───────────────────────────────── */
+.movie-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.imdb-badge {
+  background: var(--yellow);
+  color: #111;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.meta-rating {
+  color: rgba(255, 255, 255, 0.90);
+  font-weight: normal;
+  font-size: 1rem;
+}
+
+.meta-dot {
+  color: rgba(255, 255, 255, 0.90);
+  font-size: 1rem;
+}
+
+.meta-muted {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1rem;
+}
+
+/* ─── DESCRIPTION ────────────────────────── */
+.movie-description {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 1rem;
+  line-height: 1.85;
+  max-width: 420px;
+}
+
+/* ─── CAROUSEL ───────────────────────────── */
 .carousel-wrapper {
-  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .movie-list {
@@ -48,8 +190,7 @@ body {
   gap: 14px;
   overflow-x: auto;
   overflow-y: visible;
-  scroll-behavior: smooth;
-  padding: 12px 2px 10px;
+  padding: 14px 2px 8px;
   scrollbar-width: none;
   align-items: flex-end;
 }
@@ -58,19 +199,22 @@ body {
   display: none;
 }
 
+/* ─── MOVIE CARD ─────────────────────────── */
 .movie-card {
-  position: relative;
-  flex: 0 0 110px;
-  height: 160px;
+  flex: 0 0 148px;
+  height: 215px;
   border-radius: var(--radius);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0;
-  outline: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.07);
   box-shadow: var(--card-shadow);
-  transition: transform var(--transition), outline var(--transition),
-    box-shadow var(--transition), opacity var(--transition);
-  opacity: 0.72;
+  outline: 2px solid transparent;
+  opacity: 0.68;
+  cursor: pointer;
+  transition:
+    transform var(--transition),
+    outline var(--transition),
+    opacity var(--transition),
+    box-shadow var(--transition);
 }
 
 .movie-card img {
@@ -80,36 +224,42 @@ body {
   display: block;
 }
 
+.movie-card:hover {
+  opacity: 0.90;
+  transform: translateY(-4px);
+}
+
 .movie-card.active {
-  transform: scale(1.08);
-  outline-color: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.62);
+  outline-color: rgba(255, 255, 255, 0.88);
+  transform: scale(1.08) translateY(-6px);
   opacity: 1;
   z-index: 2;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65);
 }
 
-@media (min-width: 768px) {
-  .home-page {
-    padding: 0 40px 34px;
-  }
-
-  .movie-list {
-    gap: 18px;
+/* ─── RESPONSIVE ─────────────────────────── */
+@media (max-width: 1024px) {
+  .page {
+    padding: 24px 32px 32px;
   }
 
   .movie-card {
-    flex-basis: 140px;
-    height: 200px;
+    flex-basis: 130px;
+    height: 190px;
   }
 }
 
-@media (min-width: 1024px) {
-  .home-page {
-    padding: 0 48px 42px;
+@media (max-width: 768px) {
+  .page {
+    padding: 18px 18px 24px;
+  }
+
+  .movie-title {
+    font-size: 2.4rem;
   }
 
   .movie-card {
-    flex-basis: 155px;
-    height: 225px;
+    flex-basis: 108px;
+    height: 158px;
   }
 }
