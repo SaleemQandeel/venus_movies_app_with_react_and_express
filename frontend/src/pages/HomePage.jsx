@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import SelectedMovieDetails from "../components/SelectedMovieDetails"
 import MovieList from "../components/MovieList"
 import SearchBar from "../components/SearchBar"
+import AddMovieForm from "../components/AddMovieForm"
 
 function mapMovie(movie) {
     let year = movie.year
@@ -9,7 +10,7 @@ function mapMovie(movie) {
     if (!year && movie.release_date) {
         const parsed = new Date(movie.release_date)
         year = isNaN(parsed.getFullYear())
-            ? movie.release_date.slice(-4)
+            ? movie.release_date.slice(0, 4)
             : parsed.getFullYear()
     }
 
@@ -42,6 +43,8 @@ function HomePage() {
     const [hoveredMovie, setHoveredMovie] = useState(null)
     const [pageStatus, setPageStatus] = useState("loading")
     const [searchStatus, setSearchStatus] = useState("idle")
+    const [addStatus, setAddStatus] = useState("idle")
+    const [addError, setAddError] = useState("")
     const listRef = useRef(null)
 
     const displayedMovie = hoveredMovie || selectedMovie
@@ -71,7 +74,41 @@ function HomePage() {
         return (result.data || []).map(mapMovie)
     }
 
-    // Initial load
+    async function handleAddMovie(newMovieData) {
+        setAddStatus("loading")
+        setAddError("")
+
+        try {
+            const response = await fetch("/movies", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(newMovieData),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                throw new Error(result.error || "Failed to add movie")
+            }
+
+            const mappedMovie = mapMovie(result)
+
+            setMovies((prev) => [mappedMovie, ...prev])
+            setSelectedMovie(mappedMovie)
+            setHoveredMovie(null)
+            setAddStatus("success")
+
+            setTimeout(() => {
+                setAddStatus("idle")
+            }, 2500)
+        } catch (error) {
+            setAddStatus("error")
+            setAddError(error.message)
+        }
+    }
+
     useEffect(() => {
         setPageStatus("loading")
         loadMovies()
@@ -117,7 +154,6 @@ function HomePage() {
             .catch(() => setSearchStatus("error"))
     }
 
-    // Page-level loading/error
     if (pageStatus === "loading") {
         return (
             <main className="page">
@@ -174,6 +210,12 @@ function HomePage() {
                     <SelectedMovieDetails movie={displayedMovie} />
                 )}
             </div>
+
+            <AddMovieForm
+                onAddMovie={handleAddMovie}
+                addStatus={addStatus}
+                addError={addError}
+            />
 
             {searchStatus !== "loading" && movies.length > 0 && selectedMovie && (
                 <MovieList
