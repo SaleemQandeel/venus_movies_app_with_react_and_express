@@ -25,7 +25,7 @@ function MovieList({
                     <MovieCard
                         key={movie.id}
                         movie={movie}
-                        isSelected={movie.id === selectedMovie.id}
+                        isSelected={selectedMovie && movie.id === selectedMovie.id}
                         onSelect={onSelectMovie}
                         onHover={onHoverMovie}
                     />

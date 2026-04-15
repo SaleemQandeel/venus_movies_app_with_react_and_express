@@ -1,62 +1,150 @@
-import { useState, useRef } from "react"
-import { movies as allMovies } from "../data/movies"
+import { useEffect, useRef, useState } from "react"
 import SelectedMovieDetails from "../components/SelectedMovieDetails"
 import MovieList from "../components/MovieList"
 import SearchBar from "../components/SearchBar"
 
+function mapMovie(movie) {
+    let year = movie.year
+
+    if (!year && movie.release_date) {
+        const parsed = new Date(movie.release_date)
+        year = isNaN(parsed.getFullYear())
+            ? movie.release_date.slice(-4)
+            : parsed.getFullYear()
+    }
+
+    const genreValue = Array.isArray(movie.genre)
+        ? movie.genre.join(", ")
+        : Array.isArray(movie.genres)
+            ? movie.genres.join(", ")
+            : movie.genre ?? movie.genres ?? "Unknown"
+
+    return {
+        id: movie.id,
+        title: movie.title,
+        rating: movie.rating ?? movie.vote_average ?? 0,
+        year,
+        genre: genreValue,
+        runtime: movie.runtime ?? 0,
+        description: movie.description ?? movie.overview ?? "No description available.",
+        poster:
+            movie.poster
+                ? movie.poster
+                : movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : "https://via.placeholder.com/300x450?text=No+Poster",
+    }
+}
+
 function HomePage() {
-    const [selectedMovie, setSelectedMovie] = useState(allMovies[0])
+    const [movies, setMovies] = useState([])
+    const [selectedMovie, setSelectedMovie] = useState(null)
     const [hoveredMovie, setHoveredMovie] = useState(null)
-    const [movies, setMovies] = useState(allMovies)
+    const [pageStatus, setPageStatus] = useState("loading")
     const [searchStatus, setSearchStatus] = useState("idle")
     const listRef = useRef(null)
 
     const displayedMovie = hoveredMovie || selectedMovie
 
     function scrollLeft() {
+        if (!listRef.current) return
         listRef.current.scrollBy({ left: -400, behavior: "smooth" })
     }
 
     function scrollRight() {
+        if (!listRef.current) return
         listRef.current.scrollBy({ left: 400, behavior: "smooth" })
     }
 
+    async function loadMovies(query = "") {
+        const url = query.trim()
+            ? `/movies?search=${encodeURIComponent(query)}`
+            : "/movies"
+
+        const response = await fetch(url)
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch")
+        }
+
+        const result = await response.json()
+        return (result.data || []).map(mapMovie)
+    }
+
+    // Initial load
+    useEffect(() => {
+        setPageStatus("loading")
+        loadMovies()
+            .then((list) => {
+                setMovies(list)
+                setSelectedMovie(list[0] || null)
+                setPageStatus("idle")
+            })
+            .catch(() => {
+                setPageStatus("error")
+            })
+    }, [])
+
     function handleSearch(query) {
         if (query === "") {
-            setMovies(allMovies)
-            setSearchStatus("idle")
-            setSelectedMovie(allMovies[0])
-            setHoveredMovie(null)
+            setSearchStatus("loading")
+            loadMovies()
+                .then((list) => {
+                    setMovies(list)
+                    setSelectedMovie(list[0] || null)
+                    setHoveredMovie(null)
+                    setSearchStatus("idle")
+                })
+                .catch(() => setSearchStatus("error"))
             return
         }
 
         setSearchStatus("loading")
-
-        setTimeout(() => {
-            try {
-                const results = allMovies.filter(m =>
-                    m.title.toLowerCase().includes(query.toLowerCase())
-                )
-                if (results.length === 0) {
-                    setSearchStatus("empty")
+        loadMovies(query)
+            .then((list) => {
+                if (list.length === 0) {
                     setMovies([])
-                } else {
-                    setSearchStatus("idle")
-                    setMovies(results)
-                    setSelectedMovie(results[0])
+                    setSelectedMovie(null)
                     setHoveredMovie(null)
+                    setSearchStatus("empty")
+                } else {
+                    setMovies(list)
+                    setSelectedMovie(list[0])
+                    setHoveredMovie(null)
+                    setSearchStatus("idle")
                 }
-            } catch {
-                setSearchStatus("error")
-            }
-        }, 400)
+            })
+            .catch(() => setSearchStatus("error"))
+    }
+
+    // Page-level loading/error
+    if (pageStatus === "loading") {
+        return (
+            <main className="page">
+                <div className="page-feedback">Loading movies...</div>
+            </main>
+        )
+    }
+
+    if (pageStatus === "error") {
+        return (
+            <main className="page">
+                <div className="page-feedback page-feedback--error">
+                    Failed to load movies. Make sure the backend is running.
+                </div>
+            </main>
+        )
     }
 
     return (
         <main className="page">
             <div
                 className="background"
-                style={{ backgroundImage: `url(${displayedMovie.poster})` }}
+                style={{
+                    backgroundImage: displayedMovie
+                        ? `url(${displayedMovie.poster})`
+                        : "none",
+                }}
             />
             <div className="background-overlay" />
 
@@ -82,12 +170,12 @@ function HomePage() {
                         No movies found.
                     </div>
                 )}
-                {searchStatus === "idle" && (
+                {searchStatus === "idle" && displayedMovie && (
                     <SelectedMovieDetails movie={displayedMovie} />
                 )}
             </div>
 
-            {searchStatus !== "loading" && movies.length > 0 && (
+            {searchStatus !== "loading" && movies.length > 0 && selectedMovie && (
                 <MovieList
                     movies={movies}
                     selectedMovie={selectedMovie}
