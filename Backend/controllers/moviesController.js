@@ -1,19 +1,19 @@
-const { readMovies, writeMovies } = require('../utils/fileHandler');
-const url = require('url');
+const { readMovies, writeMovies } = require("../utils/fileHandler");
 // GET /movies or GET /movies?search=keyword or GET /movies?limit=number
-const getMovies = async(req, res) => {
+const getMovies = async (req, res) => {
     try {
         let movies = await readMovies();
 
         const { search, limit } = req.query;
 
-        //  #9 issue Search 
+        // Issue #8 — Search
         if (search) {
-            movies = movies.filter(movie =>
+            movies = movies.filter((movie) =>
                 movie.title.toLowerCase().includes(search.toLowerCase())
             );
         }
-        //  #10 issue Limit
+
+        // Issue #9 — Limit
         if (limit) {
             const limitNumber = parseInt(limit);
             // Validation
@@ -41,7 +41,7 @@ const getMovies = async(req, res) => {
     }
 };
 // GET /movies/:id
-const getMovieById = async(req, res) => {
+const getMovieById = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const movies = await readMovies();
@@ -52,13 +52,13 @@ const getMovieById = async(req, res) => {
             return res.status(404).json({ error: 'Movie not found' });
         }
 
-        res.json(movie);
+        res.json({ data: movie });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 };
 // post /movies
-const createMovie = async(req, res) => {
+const createMovie = async (req, res) => {
     try {
         const data = req.body;
 
@@ -98,7 +98,7 @@ const createMovie = async(req, res) => {
     }
 };
 // PATCH /movies/:id
-const updateMovie = async(req, res) => {
+const updateMovie = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const data = req.body;
@@ -140,7 +140,7 @@ const updateMovie = async(req, res) => {
     }
 };
 // DELETE /movies/:id
-const deleteMovie = async(req, res) => {
+const deleteMovie = async (req, res) => {
     try {
         const id = parseInt(req.params.id);
 

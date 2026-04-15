@@ -4,9 +4,10 @@ function SearchBar({ onSearch }) {
     const [query, setQuery] = useState("")
 
     function handleKeyDown(e) {
-        if (e.key === "Enter" && query.trim()) {
-            onSearch(query.trim())
-        }
+        if (e.key !== "Enter") return
+
+        const trimmedQuery = query.trim()
+        onSearch(trimmedQuery)
     }
 
     function handleChange(e) {

@@ -1,9 +1,17 @@
 function SelectedMovieDetails({ movie }) {
-    const hours = Math.floor(movie.runtime / 60)
-    const minutes = movie.runtime % 60
-    const hourLabel = hours === 1 ? "hour" : "hours"
-    const minuteLabel = minutes === 1 ? "minute" : "minutes"
-    const duration = `${hours} ${hourLabel} ${minutes} ${minuteLabel}`
+    if (!movie) return null
+
+    const runtime = Number(movie.runtime) || 0
+    const hours = Math.floor(runtime / 60)
+    const minutes = runtime % 60
+
+    let duration = "Unknown duration"
+
+    if (runtime > 0) {
+        const hourLabel = hours === 1 ? "hour" : "hours"
+        const minuteLabel = minutes === 1 ? "minute" : "minutes"
+        duration = `${hours} ${hourLabel} ${minutes} ${minuteLabel}`
+    }
 
     return (
         <div className="hero-content">

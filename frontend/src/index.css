@@ -414,3 +414,16 @@ body {
     width: 160px;
   }
 }
+
+.page-feedback {
+  position: relative;
+  z-index: 1;
+  margin: auto;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1.1rem;
+  font-family: "Poppins", sans-serif;
+}
+
+.page-feedback--error {
+  color: #ff6b6b;
+}
