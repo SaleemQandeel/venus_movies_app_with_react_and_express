@@ -1,8 +1,48 @@
 const { readMovies, writeMovies } = require("../utils/fileHandler");
+const { fetchPoster } = require("../utils/posterService");
+// Helper function to enrich movies with posters if missing
+const enrichWithPosters = async(movies, allMovies) => {
+    const missing = movies.filter((m) => !m.poster_url && m.imdb_id);
+
+    if (missing.length === 0) return movies;
+
+    const fetched = await Promise.all(
+        missing.map(async(movie) => {
+            const poster = await fetchPoster(movie.imdb_id);
+            return { imdb_id: movie.imdb_id, poster_url: poster };
+        })
+    );
+
+    const posterMap = {};
+    fetched.forEach(({ imdb_id, poster_url }) => {
+        if (poster_url) posterMap[imdb_id] = poster_url;
+    });
+
+    let changed = false;
+    const updatedAll = allMovies.map((m) => {
+        if (m.imdb_id && posterMap[m.imdb_id] && !m.poster_url) {
+            changed = true;
+            return {...m, poster_url: posterMap[m.imdb_id] };
+        }
+        return m;
+    });
+
+    if (changed) {
+        await writeMovies(updatedAll);
+    }
+
+    return movies.map((m) => {
+        if (m.imdb_id && posterMap[m.imdb_id]) {
+            return {...m, poster_url: posterMap[m.imdb_id] };
+        }
+        return m;
+    });
+};
 // GET /movies or GET /movies?search=keyword or GET /movies?limit=number
-const getMovies = async (req, res) => {
+const getMovies = async(req, res) => {
     try {
-        let movies = await readMovies();
+        const allMovies = await readMovies();
+        let movies = [...allMovies];
 
         const { search, limit } = req.query;
 
@@ -31,34 +71,32 @@ const getMovies = async (req, res) => {
                 data: []
             });
         }
-        res.json({
-            count: movies.length,
-            data: movies
-        });
+        movies = await enrichWithPosters(movies, allMovies);
+        res.json({ count: movies.length, data: movies });
 
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 };
 // GET /movies/:id
-const getMovieById = async (req, res) => {
+const getMovieById = async(req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const movies = await readMovies();
+        const allMovies = await readMovies();
 
-        const movie = movies.find(m => Number(m.id) === id);
+        const movie = allMovies.find(m => Number(m.id) === id);
 
         if (!movie) {
             return res.status(404).json({ error: 'Movie not found' });
         }
-
-        res.json({ data: movie });
+        const [enriched] = await enrichWithPosters([movie], allMovies);
+        res.json({ data: enriched });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 };
 // post /movies
-const createMovie = async (req, res) => {
+const createMovie = async(req, res) => {
     try {
         const data = req.body;
 
@@ -98,7 +136,7 @@ const createMovie = async (req, res) => {
     }
 };
 // PATCH /movies/:id
-const updateMovie = async (req, res) => {
+const updateMovie = async(req, res) => {
     try {
         const id = parseInt(req.params.id);
         const data = req.body;
@@ -140,7 +178,7 @@ const updateMovie = async (req, res) => {
     }
 };
 // DELETE /movies/:id
-const deleteMovie = async (req, res) => {
+const deleteMovie = async(req, res) => {
     try {
         const id = parseInt(req.params.id);
 
