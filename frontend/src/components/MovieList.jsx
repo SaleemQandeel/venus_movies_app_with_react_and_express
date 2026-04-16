@@ -12,10 +12,10 @@ function MovieList({
     return (
         <section className="carousel-wrapper">
             <div className="carousel-controls">
-                <button className="carousel-btn" onClick={onScrollLeft}>
+                <button type="button" className="carousel-btn" onClick={onScrollLeft}>
                     &#8249;
                 </button>
-                <button className="carousel-btn" onClick={onScrollRight}>
+                <button type="button" className="carousel-btn" onClick={onScrollRight}>
                     &#8250;
                 </button>
             </div>

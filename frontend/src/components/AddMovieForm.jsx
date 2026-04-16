@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-function AddMovieForm({ onAddMovie, addStatus, addError }) {
+function AddMovieForm({ onAddMovie, onCancel, addStatus, addError }) {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -41,59 +41,72 @@ function AddMovieForm({ onAddMovie, addStatus, addError }) {
     }
 
     return (
-        <section className="movie-form-section">
-            <h2 className="movie-form-title">Add New Movie</h2>
+        <section className="action-panel">
+            <div className="action-panel-card">
+                <h2 className="action-panel-title">Add New Movie</h2>
 
-            <form className="movie-form" onSubmit={handleSubmit}>
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Movie title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    className="movie-form-input"
-                    required
-                />
+                <form className="action-form" onSubmit={handleSubmit}>
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Movie title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        className="action-input"
+                        required
+                    />
 
-                <textarea
-                    name="description"
-                    placeholder="Movie description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="movie-form-textarea"
-                    required
-                />
+                    <textarea
+                        name="description"
+                        placeholder="Movie description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="action-textarea"
+                        required
+                    />
 
-                <input
-                    type="number"
-                    name="year"
-                    placeholder="Year"
-                    value={formData.year}
-                    onChange={handleChange}
-                    className="movie-form-input"
-                    required
-                />
+                    <input
+                        type="number"
+                        name="year"
+                        placeholder="Year"
+                        value={formData.year}
+                        onChange={handleChange}
+                        className="action-input"
+                        required
+                    />
 
-                <button
-                    type="submit"
-                    className="movie-form-submit movie-form-submit--add"
-                    disabled={addStatus === "loading"}
-                >
-                    {addStatus === "loading" ? "Adding..." : "Add Movie"}
-                </button>
-            </form>
+                    <div className="action-buttons">
+                        <button
+                            type="submit"
+                            className="action-submit action-submit--add"
+                            disabled={addStatus === "loading"}
+                        >
+                            {addStatus === "loading" ? "Adding..." : "Add Movie"}
+                        </button>
 
-            {addStatus === "success" && (
-                <p className="movie-form-feedback movie-form-feedback--success">
-                    Movie added successfully.
-                </p>
-            )}
+                        <button
+                            type="button"
+                            className="action-cancel"
+                            onClick={onCancel}
+                            disabled={addStatus === "loading"}
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
 
-            {addStatus === "error" && (
-                <p className="movie-form-feedback movie-form-feedback--error">
-                    {addError || "Failed to add movie."}
-                </p>
-            )}
+                {addStatus === "success" && (
+                    <p className="action-feedback action-feedback--success">
+                        Movie added successfully.
+                    </p>
+                )}
+
+                {addStatus === "error" && (
+                    <p className="action-feedback action-feedback--error">
+                        {addError || "Failed to add movie."}
+                    </p>
+                )}
+            </div>
         </section>
     )
 }
