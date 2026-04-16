@@ -4,6 +4,7 @@ import MovieList from "../components/MovieList"
 import SearchBar from "../components/SearchBar"
 import AddMovieForm from "../components/AddMovieForm"
 import EditMovieForm from "../components/EditMovieForm"
+import DeleteMovieDialog from "../components/DeleteMovieDialog"
 
 function mapMovie(movie) {
     let year = movie.year
@@ -30,11 +31,13 @@ function mapMovie(movie) {
         runtime: movie.runtime ?? 0,
         description: movie.description ?? movie.overview ?? "No description available.",
         poster:
-            movie.poster
-                ? movie.poster
-                : movie.poster_path
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                    : "https://via.placeholder.com/300x450?text=No+Poster",
+            movie.poster_url
+                ? movie.poster_url
+                : movie.poster
+                    ? movie.poster
+                    : movie.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : "https://via.placeholder.com/300x450?text=No+Poster",
     }
 }
 
@@ -46,7 +49,7 @@ function HomePage() {
     const [pageStatus, setPageStatus] = useState("loading")
     const [searchStatus, setSearchStatus] = useState("idle")
 
-    const [activeForm, setActiveForm] = useState(null)
+    const [activePanel, setActivePanel] = useState(null)
 
     const [addStatus, setAddStatus] = useState("idle")
     const [addError, setAddError] = useState("")
@@ -54,9 +57,26 @@ function HomePage() {
     const [updateStatus, setUpdateStatus] = useState("idle")
     const [updateError, setUpdateError] = useState("")
 
+    const [deleteStatus, setDeleteStatus] = useState("idle")
+    const [deleteError, setDeleteError] = useState("")
+
     const listRef = useRef(null)
 
     const displayedMovie = hoveredMovie || selectedMovie
+
+    function resetActionStates() {
+        setAddStatus("idle")
+        setAddError("")
+        setUpdateStatus("idle")
+        setUpdateError("")
+        setDeleteStatus("idle")
+        setDeleteError("")
+    }
+
+    function closeActivePanel() {
+        setActivePanel(null)
+        resetActionStates()
+    }
 
     function scrollLeft() {
         if (!listRef.current) return
@@ -110,9 +130,8 @@ function HomePage() {
             setAddStatus("success")
 
             setTimeout(() => {
-                setActiveForm(null)
-                setAddStatus("idle")
-            }, 2000)
+                closeActivePanel()
+            }, 1800)
         } catch (error) {
             setAddStatus("error")
             setAddError(error.message)
@@ -153,12 +172,51 @@ function HomePage() {
             setUpdateStatus("success")
 
             setTimeout(() => {
-                setActiveForm(null)
-                setUpdateStatus("idle")
-            }, 2000)
+                closeActivePanel()
+            }, 1800)
         } catch (error) {
             setUpdateStatus("error")
             setUpdateError(error.message)
+        }
+    }
+
+    async function handleDeleteMovie(movieId) {
+        setDeleteStatus("loading")
+        setDeleteError("")
+
+        try {
+            const response = await fetch(`/movies/${movieId}`, {
+                method: "DELETE",
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                throw new Error(result.error || "Failed to delete movie")
+            }
+
+            setMovies((prevMovies) => {
+                const updatedMovies = prevMovies.filter((movie) => movie.id !== movieId)
+
+                if (hoveredMovie && hoveredMovie.id === movieId) {
+                    setHoveredMovie(null)
+                }
+
+                if (selectedMovie && selectedMovie.id === movieId) {
+                    setSelectedMovie(updatedMovies[0] || null)
+                }
+
+                return updatedMovies
+            })
+
+            setDeleteStatus("success")
+
+            setTimeout(() => {
+                closeActivePanel()
+            }, 1800)
+        } catch (error) {
+            setDeleteStatus("error")
+            setDeleteError(error.message)
         }
     }
 
@@ -211,22 +269,21 @@ function HomePage() {
             .catch(() => setSearchStatus("error"))
     }
 
-    function toggleAddForm() {
-        setAddStatus("idle")
-        setAddError("")
-        setUpdateStatus("idle")
-        setUpdateError("")
-        setActiveForm((prev) => (prev === "add" ? null : "add"))
+    function toggleAddPanel() {
+        resetActionStates()
+        setActivePanel((prev) => (prev === "add" ? null : "add"))
     }
 
-    function toggleEditForm() {
+    function toggleEditPanel() {
         if (!selectedMovie) return
+        resetActionStates()
+        setActivePanel((prev) => (prev === "edit" ? null : "edit"))
+    }
 
-        setUpdateStatus("idle")
-        setUpdateError("")
-        setAddStatus("idle")
-        setAddError("")
-        setActiveForm((prev) => (prev === "edit" ? null : "edit"))
+    function toggleDeletePanel() {
+        if (!selectedMovie) return
+        resetActionStates()
+        setActivePanel((prev) => (prev === "delete" ? null : "delete"))
     }
 
     if (pageStatus === "loading") {
@@ -270,10 +327,10 @@ function HomePage() {
 
                     <button
                         type="button"
-                        className={`top-action-button ${activeForm === "add" ? "top-action-button--active" : ""}`}
-                        onClick={toggleAddForm}
+                        className={`top-action-button ${activePanel === "add" ? "top-action-button--active" : ""}`}
+                        onClick={toggleAddPanel}
                     >
-                        {activeForm === "add" ? "Close Add" : "Add Movie"}
+                        {activePanel === "add" ? "Close Add" : "Add Movie"}
                     </button>
                 </div>
             </div>
@@ -303,11 +360,20 @@ function HomePage() {
                             <div className="details-actions">
                                 <button
                                     type="button"
-                                    className={`details-action-button ${activeForm === "edit" ? "details-action-button--active" : ""}`}
-                                    onClick={toggleEditForm}
+                                    className={`details-action-button ${activePanel === "edit" ? "details-action-button--active" : ""}`}
+                                    onClick={toggleEditPanel}
                                     disabled={!selectedMovie}
                                 >
-                                    {activeForm === "edit" ? "Close Edit" : "Edit Movie"}
+                                    {activePanel === "edit" ? "Close Edit" : "Edit Movie"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={`details-action-button details-action-button--danger ${activePanel === "delete" ? "details-action-button--danger-active" : ""}`}
+                                    onClick={toggleDeletePanel}
+                                    disabled={!selectedMovie}
+                                >
+                                    {activePanel === "delete" ? "Close Delete" : "Delete Movie"}
                                 </button>
                             </div>
                         </>
@@ -315,20 +381,32 @@ function HomePage() {
                 </div>
             </div>
 
-            {activeForm === "add" && (
+            {activePanel === "add" && (
                 <AddMovieForm
                     onAddMovie={handleAddMovie}
+                    onCancel={closeActivePanel}
                     addStatus={addStatus}
                     addError={addError}
                 />
             )}
 
-            {activeForm === "edit" && selectedMovie && (
+            {activePanel === "edit" && selectedMovie && (
                 <EditMovieForm
                     movie={selectedMovie}
                     onUpdateMovie={handleUpdateMovie}
+                    onCancel={closeActivePanel}
                     updateStatus={updateStatus}
                     updateError={updateError}
+                />
+            )}
+
+            {activePanel === "delete" && selectedMovie && (
+                <DeleteMovieDialog
+                    movie={selectedMovie}
+                    onDeleteMovie={handleDeleteMovie}
+                    onCancel={closeActivePanel}
+                    deleteStatus={deleteStatus}
+                    deleteError={deleteError}
                 />
             )}
 
