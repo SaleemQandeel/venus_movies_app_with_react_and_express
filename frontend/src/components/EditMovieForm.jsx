@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 
-function AddMovieForm({ onAddMovie, addStatus, addError }) {
+function EditMovieForm({ movie, onUpdateMovie, updateStatus, updateError }) {
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -8,14 +8,14 @@ function AddMovieForm({ onAddMovie, addStatus, addError }) {
     })
 
     useEffect(() => {
-        if (addStatus === "success") {
-            setFormData({
-                title: "",
-                description: "",
-                year: "",
-            })
-        }
-    }, [addStatus])
+        if (!movie) return
+
+        setFormData({
+            title: movie.title || "",
+            description: movie.description || "",
+            year: movie.year || "",
+        })
+    }, [movie])
 
     function handleChange(e) {
         const { name, value } = e.target
@@ -29,20 +29,24 @@ function AddMovieForm({ onAddMovie, addStatus, addError }) {
     function handleSubmit(e) {
         e.preventDefault()
 
+        if (!movie) return
+
         const trimmedTitle = formData.title.trim()
         const trimmedDescription = formData.description.trim()
         const trimmedYear = String(formData.year).trim()
 
-        onAddMovie({
+        onUpdateMovie(movie.id, {
             title: trimmedTitle,
             description: trimmedDescription,
             year: Number(trimmedYear),
         })
     }
 
+    if (!movie) return null
+
     return (
         <section className="movie-form-section">
-            <h2 className="movie-form-title">Add New Movie</h2>
+            <h2 className="movie-form-title">Edit Selected Movie</h2>
 
             <form className="movie-form" onSubmit={handleSubmit}>
                 <input
@@ -76,26 +80,26 @@ function AddMovieForm({ onAddMovie, addStatus, addError }) {
 
                 <button
                     type="submit"
-                    className="movie-form-submit movie-form-submit--add"
-                    disabled={addStatus === "loading"}
+                    className="movie-form-submit movie-form-submit--edit"
+                    disabled={updateStatus === "loading"}
                 >
-                    {addStatus === "loading" ? "Adding..." : "Add Movie"}
+                    {updateStatus === "loading" ? "Updating..." : "Update Movie"}
                 </button>
             </form>
 
-            {addStatus === "success" && (
+            {updateStatus === "success" && (
                 <p className="movie-form-feedback movie-form-feedback--success">
-                    Movie added successfully.
+                    Movie updated successfully.
                 </p>
             )}
 
-            {addStatus === "error" && (
+            {updateStatus === "error" && (
                 <p className="movie-form-feedback movie-form-feedback--error">
-                    {addError || "Failed to add movie."}
+                    {updateError || "Failed to update movie."}
                 </p>
             )}
         </section>
     )
 }
 
-export default AddMovieForm
+export default EditMovieForm

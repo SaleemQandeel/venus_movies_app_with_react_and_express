@@ -3,13 +3,14 @@ import SelectedMovieDetails from "../components/SelectedMovieDetails"
 import MovieList from "../components/MovieList"
 import SearchBar from "../components/SearchBar"
 import AddMovieForm from "../components/AddMovieForm"
+import EditMovieForm from "../components/EditMovieForm"
 
 function mapMovie(movie) {
     let year = movie.year
 
     if (!year && movie.release_date) {
         const parsed = new Date(movie.release_date)
-        year = isNaN(parsed.getFullYear())
+        year = Number.isNaN(parsed.getFullYear())
             ? movie.release_date.slice(0, 4)
             : parsed.getFullYear()
     }
@@ -41,10 +42,18 @@ function HomePage() {
     const [movies, setMovies] = useState([])
     const [selectedMovie, setSelectedMovie] = useState(null)
     const [hoveredMovie, setHoveredMovie] = useState(null)
+
     const [pageStatus, setPageStatus] = useState("loading")
     const [searchStatus, setSearchStatus] = useState("idle")
+
+    const [activeForm, setActiveForm] = useState(null)
+
     const [addStatus, setAddStatus] = useState("idle")
     const [addError, setAddError] = useState("")
+
+    const [updateStatus, setUpdateStatus] = useState("idle")
+    const [updateError, setUpdateError] = useState("")
+
     const listRef = useRef(null)
 
     const displayedMovie = hoveredMovie || selectedMovie
@@ -101,16 +110,61 @@ function HomePage() {
             setAddStatus("success")
 
             setTimeout(() => {
+                setActiveForm(null)
                 setAddStatus("idle")
-            }, 2500)
+            }, 2000)
         } catch (error) {
             setAddStatus("error")
             setAddError(error.message)
         }
     }
 
+    async function handleUpdateMovie(movieId, updatedMovieData) {
+        setUpdateStatus("loading")
+        setUpdateError("")
+
+        try {
+            const response = await fetch(`/movies/${movieId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedMovieData),
+            })
+
+            const result = await response.json()
+
+            if (!response.ok) {
+                throw new Error(result.error || "Failed to update movie")
+            }
+
+            const mappedMovie = mapMovie(result)
+
+            setMovies((prev) =>
+                prev.map((movie) => (movie.id === movieId ? mappedMovie : movie))
+            )
+
+            setSelectedMovie(mappedMovie)
+
+            if (hoveredMovie && hoveredMovie.id === movieId) {
+                setHoveredMovie(mappedMovie)
+            }
+
+            setUpdateStatus("success")
+
+            setTimeout(() => {
+                setActiveForm(null)
+                setUpdateStatus("idle")
+            }, 2000)
+        } catch (error) {
+            setUpdateStatus("error")
+            setUpdateError(error.message)
+        }
+    }
+
     useEffect(() => {
         setPageStatus("loading")
+
         loadMovies()
             .then((list) => {
                 setMovies(list)
@@ -125,6 +179,7 @@ function HomePage() {
     function handleSearch(query) {
         if (query === "") {
             setSearchStatus("loading")
+
             loadMovies()
                 .then((list) => {
                     setMovies(list)
@@ -133,10 +188,12 @@ function HomePage() {
                     setSearchStatus("idle")
                 })
                 .catch(() => setSearchStatus("error"))
+
             return
         }
 
         setSearchStatus("loading")
+
         loadMovies(query)
             .then((list) => {
                 if (list.length === 0) {
@@ -152,6 +209,24 @@ function HomePage() {
                 }
             })
             .catch(() => setSearchStatus("error"))
+    }
+
+    function toggleAddForm() {
+        setAddStatus("idle")
+        setAddError("")
+        setUpdateStatus("idle")
+        setUpdateError("")
+        setActiveForm((prev) => (prev === "add" ? null : "add"))
+    }
+
+    function toggleEditForm() {
+        if (!selectedMovie) return
+
+        setUpdateStatus("idle")
+        setUpdateError("")
+        setAddStatus("idle")
+        setAddError("")
+        setActiveForm((prev) => (prev === "edit" ? null : "edit"))
     }
 
     if (pageStatus === "loading") {
@@ -189,33 +264,73 @@ function HomePage() {
                     <span className="badge-new">NEW</span>
                     <span className="badge-text">MOVIE</span>
                 </div>
-                <SearchBar onSearch={handleSearch} />
+
+                <div className="top-actions">
+                    <SearchBar onSearch={handleSearch} />
+
+                    <button
+                        type="button"
+                        className={`top-action-button ${activeForm === "add" ? "top-action-button--active" : ""}`}
+                        onClick={toggleAddForm}
+                    >
+                        {activeForm === "add" ? "Close Add" : "Add Movie"}
+                    </button>
+                </div>
             </div>
 
             <div className="middle-content">
-                {searchStatus === "loading" && (
-                    <div className="search-feedback">Searching...</div>
-                )}
-                {searchStatus === "error" && (
-                    <div className="search-feedback search-feedback--error">
-                        Something went wrong. Please try again.
-                    </div>
-                )}
-                {searchStatus === "empty" && (
-                    <div className="search-feedback search-feedback--empty">
-                        No movies found.
-                    </div>
-                )}
-                {searchStatus === "idle" && displayedMovie && (
-                    <SelectedMovieDetails movie={displayedMovie} />
-                )}
+                <div className="hero-block">
+                    {searchStatus === "loading" && (
+                        <div className="search-feedback">Searching...</div>
+                    )}
+
+                    {searchStatus === "error" && (
+                        <div className="search-feedback search-feedback--error">
+                            Something went wrong. Please try again.
+                        </div>
+                    )}
+
+                    {searchStatus === "empty" && (
+                        <div className="search-feedback search-feedback--empty">
+                            No movies found.
+                        </div>
+                    )}
+
+                    {searchStatus === "idle" && displayedMovie && (
+                        <>
+                            <SelectedMovieDetails movie={displayedMovie} />
+
+                            <div className="details-actions">
+                                <button
+                                    type="button"
+                                    className={`details-action-button ${activeForm === "edit" ? "details-action-button--active" : ""}`}
+                                    onClick={toggleEditForm}
+                                    disabled={!selectedMovie}
+                                >
+                                    {activeForm === "edit" ? "Close Edit" : "Edit Movie"}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
 
-            <AddMovieForm
-                onAddMovie={handleAddMovie}
-                addStatus={addStatus}
-                addError={addError}
-            />
+            {activeForm === "add" && (
+                <AddMovieForm
+                    onAddMovie={handleAddMovie}
+                    addStatus={addStatus}
+                    addError={addError}
+                />
+            )}
+
+            {activeForm === "edit" && selectedMovie && (
+                <EditMovieForm
+                    movie={selectedMovie}
+                    onUpdateMovie={handleUpdateMovie}
+                    updateStatus={updateStatus}
+                    updateError={updateError}
+                />
+            )}
 
             {searchStatus !== "loading" && movies.length > 0 && selectedMovie && (
                 <MovieList
